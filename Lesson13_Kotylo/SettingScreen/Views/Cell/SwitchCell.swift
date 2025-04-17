@@ -16,6 +16,7 @@ class SwitchCell: DefaultCell {
     }()
     
     override func setupViews() {
+        backgroundColor = .grayBack
         addSubview(titleLabel)
         addSubview(iconImageView)
         addSubview(switchControl)
