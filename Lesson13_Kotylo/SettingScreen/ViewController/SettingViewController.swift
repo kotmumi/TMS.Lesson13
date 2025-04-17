@@ -109,10 +109,12 @@ extension SettingViewController: UITableViewDelegate {
         tableView.visibleCells.forEach { cell in
             guard let resizableCell = cell as? SearchCell else { return }
             
-            if newHeight < maxHeight/2 {
+            if newHeight < maxHeight/5 {
                 newHeight = 0
+                //tableView.decelerationRate = .normal
             } else {
                 newHeight = maxHeight
+                //tableView.decelerationRate = .fast
             }
             resizeCell(cell: resizableCell)
         }
@@ -170,7 +172,7 @@ extension SettingViewController {
             cell.search.isHidden = true
         } else { cell.search.isHidden = false }
         cell.heightConstraint.constant = newHeight
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.8) {
             self.view.layoutIfNeeded()
         }
     }
