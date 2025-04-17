@@ -26,7 +26,7 @@ class SearchCell: UITableViewCell {
     let search: UISearchTextField = {
         let textField = UISearchTextField()
         textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.backgroundColor = #colorLiteral(red: 0.09803921569, green: 0.09803921569, blue: 0.09803921569, alpha: 1)
+        textField.backgroundColor = .seachBack
         textField.placeholder = "Поиск"
 
         return textField

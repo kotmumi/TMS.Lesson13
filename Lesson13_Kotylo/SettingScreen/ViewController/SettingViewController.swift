@@ -9,6 +9,10 @@ import UIKit
 
 class SettingViewController: UIViewController {
     
+    private let maxHeight: CGFloat = 32
+    private let minHeight: CGFloat = 0
+    private var newHeight: CGFloat = 32
+    
     private let data = Data()
     private let settingView = SettingView()
     
@@ -24,7 +28,7 @@ class SettingViewController: UIViewController {
     private func setupView() {
         settingView.settingsTableView.delegate = self
         settingView.settingsTableView.dataSource = self
-        settingView.settingsTableView.register(AcountCell.self, forCellReuseIdentifier: AcountCell.identifier)
+        
         settingView.settingsTableView.register(AcountCell.self, forCellReuseIdentifier: AcountCell.identifier)
         settingView.settingsTableView.register(DefaultCell.self, forCellReuseIdentifier:
                                             "DefaultCell")
@@ -98,41 +102,43 @@ extension SettingViewController: UITableViewDataSource {
 
 extension SettingViewController: UITableViewDelegate {
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
- 
-        let maxHeight: CGFloat = 32
-        let minHeight: CGFloat = 0
-        let offsetY = view.safeAreaLayoutGuide.layoutFrame.minY + scrollView.contentOffset.y
-        //print("offsetY: \(offsetY)")
-        var newHeight = max(minHeight, maxHeight - offsetY)
-        if newHeight < 0 {
-            newHeight = 0
-        } else if newHeight > maxHeight {
-            newHeight = maxHeight
-        }
-        //print ("newHeight: \(newHeight)")
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         
         guard let tableView = scrollView as? UITableView else { return }
         
         tableView.visibleCells.forEach { cell in
             guard let resizableCell = cell as? SearchCell else { return }
-           // resizableCell.frame.size = CGSize(width: resizableCell.frame.width, height: newHeight)
-            //print("frameCell: \(offsetY)")
-            //print("safeArea: \(view.safeAreaLayoutGuide.layoutFrame.minY)")
+            
+            if newHeight < maxHeight/2 {
+                newHeight = 0
+            } else {
+                newHeight = maxHeight
+            }
+            resizeCell(cell: resizableCell)
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+ 
+        let offsetY = view.safeAreaLayoutGuide.layoutFrame.minY + scrollView.contentOffset.y
+         newHeight = max(minHeight, maxHeight - offsetY)
+        if newHeight < 0 {
+            newHeight = 0
+        } else if newHeight > maxHeight {
+            newHeight = maxHeight
+        }
+        
+        guard let tableView = scrollView as? UITableView else { return }
+        
+        tableView.visibleCells.forEach { cell in
+            guard let resizableCell = cell as? SearchCell else { return }
+
             if offsetY > view.safeAreaLayoutGuide.layoutFrame.minY {
                 navigationItem.title = "Настройки"
             } else {
                 navigationItem.title = ""
             }
-            
-            resizableCell.topAnchorConstraint.constant = 40 - newHeight//- scrollLabel
-            if newHeight == 0 {
-                resizableCell.search.isHidden = true
-            } else { resizableCell.search.isHidden = false }
-            resizableCell.heightConstraint.constant = newHeight
-            UIView.animate(withDuration: 0.3) {
-                self.view.layoutIfNeeded()
-            }
+            resizeCell(cell: resizableCell)
         }
     }
     
@@ -153,6 +159,19 @@ extension SettingViewController: UITableViewDelegate {
             return
         }
         present(NewViewController(title: title), animated: true)
-          // print("indexPath.row \(indexPath.row), section \(indexPath.section)")
        }
+}
+
+extension SettingViewController {
+    
+    private func resizeCell(cell: SearchCell) {
+        cell.topAnchorConstraint.constant = 40 - newHeight
+        if newHeight == 0 {
+            cell.search.isHidden = true
+        } else { cell.search.isHidden = false }
+        cell.heightConstraint.constant = newHeight
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
 }

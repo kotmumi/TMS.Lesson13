@@ -9,7 +9,7 @@ import UIKit
 
 class SettingView: UIView {
     
-     let settingsTableView = SettingTableView()
+    let settingsTableView = SettingTableView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
