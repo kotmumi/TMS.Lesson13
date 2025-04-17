@@ -37,45 +37,23 @@ class SettingViewController: UIViewController {
         settingView.settingsTableView.register(SearchCell.self, forCellReuseIdentifier: "SearchCell")
     }
 }
-// MARK: - extension
+// MARK: - TableViewDataSource
 extension SettingViewController: UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         data.sections.count
     }
-    
+    // MARK: - numberOfRowsInSectiom
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         data.sections[section].type.count
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if section == 0 {
-            return 0
-        }
-           return 8
-       }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        return nil
-      }
-    
+    // MARK: - cellForRowAt
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let item = data.sections[indexPath.section].type[indexPath.row]
         
-        var maskCorner: CACornerMask = []
+        let maskCorner: CACornerMask = cornerRadiusMask(index: indexPath.row, countRowsInSection: tableView.numberOfRows(inSection: indexPath.section))
                 
-        if indexPath.row == 0 {
-            if tableView.numberOfRows(inSection: indexPath.section) == 1 {
-                maskCorner = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner]
-            } else {
-                maskCorner = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            }
-        } else if indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1 {
-            maskCorner = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        }
-        
-      // print("section:\(indexPath.section) row:\(indexPath.row)")
         switch item {
         case .acountItem(model: let model):
             guard let cell = tableView.dequeueReusableCell(withIdentifier: AcountCell.identifier, for: indexPath) as? AcountCell else { return UITableViewCell()}
@@ -98,10 +76,21 @@ extension SettingViewController: UITableViewDataSource {
             return cell
         }
     }
+// MARK: - HeightForHeaderInSection
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == 0 {
+            return 0
+        }
+           return 8
+       }
+// MARK: - ViewForHeaderInSection
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        return nil
+      }
 }
-
+// MARK: -TableViewDelegat
 extension SettingViewController: UITableViewDelegate {
-    
+    // MARK: - ScrollViewDidEndDragging
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         
         guard let tableView = scrollView as? UITableView else { return }
@@ -111,15 +100,16 @@ extension SettingViewController: UITableViewDelegate {
             
             if newHeight < maxHeight/5 {
                 newHeight = 0
-                //tableView.decelerationRate = .normal
             } else {
                 newHeight = maxHeight
-                //tableView.decelerationRate = .fast
+                UIView.animate(withDuration: 0.8) {
+                    scrollView.contentOffset.y = -self.view.safeAreaLayoutGuide.layoutFrame.minY
+                }
             }
             resizeCell(cell: resizableCell)
         }
     }
-    
+    // MARK: - ScrollViewDidScroll
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
  
         let offsetY = view.safeAreaLayoutGuide.layoutFrame.minY + scrollView.contentOffset.y
@@ -143,7 +133,7 @@ extension SettingViewController: UITableViewDelegate {
             resizeCell(cell: resizableCell)
         }
     }
-    
+    // MARK: - DidSelectRowAt
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
            tableView.deselectRow(at: indexPath, animated: true)
         let item = data.sections[indexPath.section].type[indexPath.row]
@@ -153,8 +143,10 @@ extension SettingViewController: UITableViewDelegate {
             title = model.title
         case .defaultItem(model: let model):
             title = model.title
-        case .switchItem(model: let model):
-            title = model.title
+        case .switchItem(model: _):
+            guard let cell = tableView.cellForRow(at: indexPath) as? SwitchCell else {return}
+                cell.switchControl.setOn(!cell.switchControl.isOn, animated: true)
+            return
         case .lableItem(model: let model):
             title = model.title
         case .searchItem(model: _):
@@ -163,11 +155,12 @@ extension SettingViewController: UITableViewDelegate {
         present(NewViewController(title: title), animated: true)
        }
 }
-
+// MARK: - resize Cell and Corner mask
 extension SettingViewController {
     
     private func resizeCell(cell: SearchCell) {
         cell.topAnchorConstraint.constant = 40 - newHeight
+        self.view.layoutIfNeeded()
         if newHeight == 0 {
             cell.search.isHidden = true
         } else { cell.search.isHidden = false }
@@ -175,5 +168,18 @@ extension SettingViewController {
         UIView.animate(withDuration: 0.8) {
             self.view.layoutIfNeeded()
         }
+    }
+    
+    private func cornerRadiusMask(index: Int, countRowsInSection: Int) -> CACornerMask {
+        if index == 0 {
+            if countRowsInSection == 1 {
+                return [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner]
+            } else {
+                return [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            }
+        } else if index == countRowsInSection - 1 {
+            return [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        }
+        return []
     }
 }

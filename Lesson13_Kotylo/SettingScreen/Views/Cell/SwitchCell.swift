@@ -16,7 +16,8 @@ class SwitchCell: DefaultCell {
     }()
     
     override func setupViews() {
-        super.setupViews()
+        addSubview(titleLabel)
+        addSubview(iconImageView)
         addSubview(switchControl)
     }
     override func setConstraints() {
@@ -30,18 +31,15 @@ class SwitchCell: DefaultCell {
             iconImageView.heightAnchor.constraint(equalToConstant: 24),
             iconImageView.widthAnchor.constraint(equalToConstant: 24),
             
-            arrowImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            arrowImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            arrowImageView.heightAnchor.constraint(equalToConstant: 16),
-            
             switchControl.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            switchControl.trailingAnchor.constraint(equalTo: arrowImageView.leadingAnchor, constant: -8),
+            switchControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
         ])
     }
     
     func setConfig(item: SwitchItem, maskCorner: CACornerMask) {
         self.layer.cornerRadius = 8
         self.layer.maskedCorners = maskCorner
+        switchControl.isOn = item.isOn
         titleLabel.text = item.title
         if item.image.isEmpty {
             iconImageView.image = nil
